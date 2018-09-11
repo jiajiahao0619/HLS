@@ -15,10 +15,11 @@ typedef char              int8;
 typedef short             int16;
 typedef long long         lint;
 
-#define H  480
+#define H  16
 #define W  640
+#define WIDTH 64
 
-void soble( lint in_img[H+H/2][W/8], lint out_img[W*3/8],coef setH, coef setW);
+void soble( lint in_img[H+H/2][W/8], lint out_img[H][W*3/8],coef setH, coef setW);
 
 
 #endif

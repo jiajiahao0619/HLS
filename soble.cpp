@@ -11,19 +11,20 @@ void soble( lint in_img[H+H/2][W/8], lint out_img[H][W*3/8],coef setH, coef setW
 
 	lint local_iny[W/8];
 	lint local_inuv[W/8];
+
     uint16 y_num,u_num,v_num;
     lint y,u,v;
 
-    uint8 local_ou[W*3/8];
+    uint8 local_ou[WIDTH/8*3];
     
     uint16 hloop,wloop;
-    uint8 i;
+    uint16 y_16,u_16,v_16;
+    uint16 oy_16,ou_16,ov_16;
+    uint8 i,j;
     uint8 y_8[8],u_8[8],v_8[8];
 #pragma HLS ARRAY_PARTITION variable=v_8 complete dim=1
 #pragma HLS ARRAY_PARTITION variable=u_8 complete dim=1
 #pragma HLS ARRAY_PARTITION variable=y_8 complete dim=1
-    uint16 y_16,u_16,v_16;
-    uint16 yo_16,uo_16,vo_16;
     
     first:
     for (hloop=0;hloop<H;hloop++){
@@ -33,7 +34,7 @@ void soble( lint in_img[H+H/2][W/8], lint out_img[H][W*3/8],coef setH, coef setW
         uint16 step = hloop*H;
         second:
         for(wloop=0;wloop<(W/8);wloop++){
-#pragma HLS UNROLL factor=4
+#pragma HLS UNROLL factor=2
 #pragma HLS PIPELINE II=1
             y_num = wloop;
             u_num = wloop;
@@ -41,11 +42,13 @@ void soble( lint in_img[H+H/2][W/8], lint out_img[H][W*3/8],coef setH, coef setW
             y = local_iny[y_num];
             u = local_inuv[u_num];
             v = local_inuv[v_num];
-            
+
             third:
-        	for( i=0;i<8;i++){
+        	for( i=0;i<8;i++)
+        	{
 #pragma HLS PIPELINE
 #pragma HLS UNROLL factor=8
+
                 y_8[i] = uint8(y>>i*8);
                 u_8[i] = uint8(u>>(i/2)*16);
                 v_8[i] = uint8(v>>(2*(i/2)+1)*8);
@@ -54,23 +57,20 @@ void soble( lint in_img[H+H/2][W/8], lint out_img[H][W*3/8],coef setH, coef setW
                 v_16 = uint16(v_8[i]);
 
 
-                yo_16 = (y_16 + (u_16 - 128) + ((104*(u_16 - 128))/256));
-                uo_16 = (y_16 - (89*(v_16 - 128)/256) - ((183*(u_16 - 128))/256));
-                vo_16 = (y_16 + (v_16 - 128) + ((199*(v_16 - 128))/256));
-
-                local_ou[wloop*24+i*3]=uint8(yo_16);
-                local_ou[wloop*24+i*3+1]=uint8(uo_16);
-                local_ou[wloop*24+i*3+2]=uint8(vo_16);
-                //local_ou[wloop*3+0]=y_8[i]+1.402(u_8[i] -128);
-                //local_ou[wloop*3+1]=y_8[i]-0.334*(u_8[i]-128)-0.714*(v_8[i]-128);
-                //local_ou[wloop*3+2]=y_8[i]+1.772*(v_8[i]-128);
+                oy_16=(y_16)+((u_16) -128)+((104*((u_16) -128))/256);
+                ou_16=(y_16)+(89*(((v_16))/256))-((183*((u_16) -128))/256);
+                ov_16=(y_16)+((v_16)-128)+((119*((v_16)-128))/256);
 
 
-                if (i==7){
-                    out_img[hloop][wloop] =((lint)((uint8)local_ou[wloop/8+0]))|(((lint)((uint8)local_ou[wloop/8+1]))<<8)|(((lint)((uint8)local_ou[wloop/8+2]))<<16)|(((lint)((uint8)local_ou[wloop/8+3]))<<24)|(((lint)((uint8)local_ou[wloop/8+4]))<<32)|(((lint)((uint8)local_ou[wloop/8+5]))<<40)|(((lint)((uint8)local_ou[wloop/8+6]))<<48)|(((lint)((uint8)local_ou[wloop/8+7]))<<56);
-    
-                }
+                local_ou[i*3] = uint8(oy_16);
+                local_ou[i*3+1]=uint8(ou_16);
+                local_ou[i*3+2]=uint8(ov_16);
+
         	}
+
+                out_img[hloop][wloop*3] =(((lint)((uint8)local_ou[7]))<<56)|(((lint)((uint8)local_ou[6]))<<48)|(((lint)((uint8)local_ou[5]))<<40)|(((lint)((uint8)local_ou[4]))<<32)|(((lint)((uint8)local_ou[3]))<<24)|(((lint)((uint8)local_ou[2]))<<16)|(((lint)((uint8)local_ou[1]))<<8)|((lint)((uint8)local_ou[0]));
+                out_img[hloop][wloop*3+1] =(((lint)((uint8)local_ou[15]))<<56)|(((lint)((uint8)local_ou[14]))<<48)|(((lint)((uint8)local_ou[13]))<<40)|(((lint)((uint8)local_ou[12]))<<32)|(((lint)((uint8)local_ou[11]))<<24)|(((lint)((uint8)local_ou[10]))<<16)|(((lint)((uint8)local_ou[9]))<<8)|((lint)((uint8)local_ou[8]));
+                out_img[hloop][wloop*3+2] =(((lint)((uint8)local_ou[23]))<<56)|(((lint)((uint8)local_ou[22]))<<48)|(((lint)((uint8)local_ou[21]))<<40)|(((lint)((uint8)local_ou[20]))<<32)|(((lint)((uint8)local_ou[19]))<<24)|(((lint)((uint8)local_ou[18]))<<16)|(((lint)((uint8)local_ou[17]))<<8)|((lint)((uint8)local_ou[16]));
 
         }    
     }
