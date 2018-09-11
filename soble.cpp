@@ -34,7 +34,6 @@ void soble( lint in_img[H+H/2][W/8], lint out_img[H][W*3/8],coef setH, coef setW
         uint16 step = hloop*H;
         second:
         for(wloop=0;wloop<(W/8);wloop++){
-#pragma HLS UNROLL factor=2
 #pragma HLS PIPELINE II=1
             y_num = wloop;
             u_num = wloop;
@@ -57,9 +56,9 @@ void soble( lint in_img[H+H/2][W/8], lint out_img[H][W*3/8],coef setH, coef setW
                 v_16 = uint16(v_8[i]);
 
 
-                oy_16=(y_16)+((u_16) -128)+((104*((u_16) -128))/256);
-                ou_16=(y_16)+(89*(((v_16))/256))-((183*((u_16) -128))/256);
-                ov_16=(y_16)+((v_16)-128)+((119*((v_16)-128))/256);
+                oy_16 = (y_16 + (u_16 - 128) + ((104*(u_16 - 128))/256));
+                ou_16 = (y_16 - (89*(v_16 - 128)>>8) - ((183*(u_16 - 128))/256));
+                ov_16 = (y_16 + (v_16 - 128) + ((199*(v_16 - 128))>>8));
 
 
                 local_ou[i*3] = uint8(oy_16);

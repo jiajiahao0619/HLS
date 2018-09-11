@@ -15,8 +15,8 @@ typedef char              int8;
 typedef short             int16;
 typedef long long         lint;
 
-#define H  16
-#define W  640
+#define H  240
+#define W  320
 #define WIDTH 64
 
 void soble( lint in_img[H+H/2][W/8], lint out_img[H][W*3/8],coef setH, coef setW);
